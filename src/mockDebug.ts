@@ -116,32 +116,24 @@ export class MockDebugSession extends LoggingDebugSession {
 		this._threads.push(new Thread(1, 'Thread 1'));
 		this.sendEvent(new ThreadEvent('started', 1));
 		this.sendEvent(new OutputEvent('Thread 1 started\n'));
-		await this.delay(10);
+		await this.delay(1);
 		this.sendEvent(new StoppedEvent('entry', 1));
 		this.sendEvent(new OutputEvent('Thread 1 stopped on entry\n'));
 		await this.delay(10);
-		this.sendEvent(new ContinuedEvent(1));
+		this.sendEvent(new ContinuedEvent(1, false));
 		this.sendEvent(new OutputEvent('Thread 1 continued\n'));
 
 
-		// Start thread 2
-		await this.delay(10);
-		this._threads.push(new Thread(2, 'Thread 2'));
-		this.sendEvent(new ThreadEvent('started', 2));
-		this.sendEvent(new OutputEvent('Thread 2 started\n'));
-
-		// Thread 1 hit breakpoint
-		await this.delay(10);
-		this.sendEvent(new StoppedEvent('breakpoint', 1));
-		this.sendEvent(new OutputEvent('Thread 1 stopped on breakpoint\n'));
-
-
-		// Thread 2 stops on entry and resumes
-		this.sendEvent(new StoppedEvent('entry', 2));
-		this.sendEvent(new OutputEvent('Thread 2 stopped on entry\n'));
-		await this.delay(10);
-		this.sendEvent(new ContinuedEvent(2));
-		this.sendEvent(new OutputEvent('Thread 2 continued\n'));
+		// Start additional threads, pause on entry, continue.
+		for (var i = 2; i < 5; i++) {
+			this._threads.push(new Thread(i, `Thread ${i}`));
+			this.sendEvent(new ThreadEvent('started', i));
+			this.sendEvent(new OutputEvent(`Thread ${i} started\n`));
+			this.sendEvent(new StoppedEvent('entry', i));
+			this.sendEvent(new OutputEvent(`Thread ${i} stopped on entry\n`));
+			this.sendEvent(new ContinuedEvent(i, false));
+			this.sendEvent(new OutputEvent(`Thread ${i} continued\n`));
+		}
 	}
 
 	private delay(ms: number) {
