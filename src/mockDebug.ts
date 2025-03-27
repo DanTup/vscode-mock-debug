@@ -218,12 +218,19 @@ export class MockDebugSession extends LoggingDebugSession {
 		response.body.supportsFunctionBreakpoints = true;
 		response.body.supportsDelayedStackTraceLoading = true;
 
+		response.body.supportsRestartRequest = true;
+
 		this.sendResponse(response);
 
 		// since this debug adapter can accept configuration requests like 'setBreakpoint' at any time,
 		// we request them early by sending an 'initializeRequest' to the frontend.
 		// The frontend will end the configuration sequence by calling 'configurationDone' request.
 		this.sendEvent(new InitializedEvent());
+	}
+
+	protected restartRequest(response: DebugProtocol.RestartResponse, args: DebugProtocol.RestartArguments, request?: DebugProtocol.Request): void {
+		// Don't send a response.
+		this.sendEvent(new OutputEvent('Infinite restart in progress... Try stopping the debug session, and then pressing F5 to start another.'));
 	}
 
 	/**
@@ -239,6 +246,8 @@ export class MockDebugSession extends LoggingDebugSession {
 
 	protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): void {
 		console.log(`disconnectRequest suspend: ${args.suspendDebuggee}, terminate: ${args.terminateDebuggee}`);
+		this.sendEvent(new TerminatedEvent());
+		this.sendResponse(response);
 	}
 
 	protected async attachRequest(response: DebugProtocol.AttachResponse, args: IAttachRequestArguments) {
