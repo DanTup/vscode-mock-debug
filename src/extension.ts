@@ -32,6 +32,8 @@ import { activateMockDebug, workspaceFileAccessor } from './activateMockDebug';
 const runMode: 'external' | 'server' | 'namedPipeServer' | 'inline' = 'inline';
 
 export function activate(context: vscode.ExtensionContext) {
+	vscode.debug.onDidStartDebugSession((e) => console.warn(`#### starting debug session ${e.id}/${e.name}`));
+	vscode.debug.onDidTerminateDebugSession((e) => console.warn(`#### ending debug session ${e.id}/${e.name}`));
 
 	// debug adapters can be run in different ways by using a vscode.DebugAdapterDescriptorFactory:
 	switch (runMode) {

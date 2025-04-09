@@ -96,7 +96,7 @@ export function activateMockDebug(context: vscode.ExtensionContext, factory?: vs
 	}
 	context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory('mock', factory));
 	if ('dispose' in factory) {
-		context.subscriptions.push(factory);
+		context.subscriptions.push(factory as { dispose(): any });
 	}
 
 	// override VS Code's default implementation of the debug hover
