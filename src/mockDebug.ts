@@ -218,6 +218,8 @@ export class MockDebugSession extends LoggingDebugSession {
 		response.body.supportsFunctionBreakpoints = true;
 		response.body.supportsDelayedStackTraceLoading = true;
 
+		response.body.supportsTerminateRequest = true;
+
 		this.sendResponse(response);
 
 		// since this debug adapter can accept configuration requests like 'setBreakpoint' at any time,
@@ -237,10 +239,22 @@ export class MockDebugSession extends LoggingDebugSession {
 		this._configurationDone.notify();
 	}
 
-	protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): void {
-		console.log(`disconnectRequest suspend: ${args.suspendDebuggee}, terminate: ${args.terminateDebuggee}`);
-		this.sendEvent(new TerminatedEvent());
+	protected async disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): Promise<void> {
+		this.sendEvent(new OutputEvent(`disconnectRequest suspend: ${args.suspendDebuggee}, terminate: ${args.terminateDebuggee}\r\n`));
+		await this.delay(100);
 		this.sendResponse(response);
+	}
+
+	protected async terminateRequest(response: DebugProtocol.TerminateResponse, args: DebugProtocol.TerminateArguments, request?: DebugProtocol.Request): Promise<void> {
+		this.sendEvent(new OutputEvent(`terminateRequest\r\n`));
+		await this.delay(100);
+		this.sendEvent(new TerminatedEvent());
+		await this.delay(100);
+		this.sendResponse(response);
+	}
+
+	private delay(ms: number) {
+		return new Promise((resolve) => setTimeout(resolve, ms));
 	}
 
 	protected async attachRequest(response: DebugProtocol.AttachResponse, args: IAttachRequestArguments) {
