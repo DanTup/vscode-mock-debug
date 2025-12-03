@@ -107,6 +107,48 @@ export class MockDebugSession extends LoggingDebugSession {
 		// wait 1 second until configuration has finished (and configurationDoneRequest has been called)
 		await this._configurationDone.wait(1000);
 		this.sendResponse(response);
+
+
+
+
+		// Start thread 1
+		await this.delay(1000);
+		this._threads.push(new Thread(1, 'Thread 1'));
+		this.sendEvent(new ThreadEvent('started', 1));
+		this.sendEvent(new OutputEvent('Thread 1 started\n'));
+		await this.delay(1);
+		this.sendEvent(new StoppedEvent('entry', 1));
+		this.sendEvent(new OutputEvent('Thread 1 stopped on entry\n'));
+		await this.delay(10);
+		this.sendEvent(new ContinuedEvent(1, false));
+		this.sendEvent(new OutputEvent('Thread 1 continued\n'));
+
+
+		// Start additional threads, pause on entry, continue.
+		const startThread = 2, endThread = 12;
+		for (var i = startThread; i <= endThread; i++) {
+			this._threads.push(new Thread(i, `Thread ${i}`));
+			this.sendEvent(new ThreadEvent('started', i));
+			this.sendEvent(new OutputEvent(`Thread ${i} started\n`));
+		}
+
+		await this.delay(1);
+
+		for (var i = startThread; i <= endThread; i++) {
+			this.sendEvent(new StoppedEvent('entry', i));
+			this.sendEvent(new OutputEvent(`Thread ${i} stopped on entry\n`));
+		}
+
+		await this.delay(1);
+
+		for (var i = endThread; i >= startThread; i--) {
+			this.sendEvent(new ContinuedEvent(i, false));
+			this.sendEvent(new OutputEvent(`Thread ${i} continued\n`));
+		}
+	}
+
+	private delay(ms: number) {
+		return new Promise((resolve) => setTimeout(resolve, ms));
 	}
 
 	protected setFunctionBreakPointsRequest(response: DebugProtocol.SetFunctionBreakpointsResponse, args: DebugProtocol.SetFunctionBreakpointsArguments, request?: DebugProtocol.Request): void {
